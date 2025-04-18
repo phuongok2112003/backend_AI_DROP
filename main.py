@@ -16,7 +16,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 from enums.model_enum import ModelType 
 from model.MLP import MLP
-from sklearn.preprocessing import StandardScaler
 import uvicorn
 app = FastAPI()
 
@@ -41,7 +40,7 @@ def load_fixed_weights(model,WEIGHT_PATH):
         model.eval()  # Đặt chế độ inference
         print(f"✅ Đã tải trọng số cố định từ '{WEIGHT_PATH}'.")
 set_seed(42)
-scaler = StandardScaler()
+scaler = joblib.load("scaler.pkl")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -129,7 +128,7 @@ async def predict_vulnerability(files: list[UploadFile] = File(...),status: Mode
                     X = features.cpu().numpy()
                     if status == ModelType.sage_cnn:
                         
-                        # X = scaler.fit_transform(X)
+                        X = scaler.transform(X)
                         X = torch.tensor(X, dtype=torch.float32)
                         with torch.no_grad():
                             y_pred_tensor = model_loaded(X)
