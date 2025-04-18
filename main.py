@@ -71,7 +71,7 @@ async def predict_vulnerability(files: list[UploadFile] = File(...),status: Mode
         WEIGHT_PATH = "GCN_drop_weights.pth"
         load_fixed_weights(model=model,WEIGHT_PATH=WEIGHT_PATH)
         try:
-            model_loaded = joblib.load(settting.MODEL_PATH_GCN_CNN)
+            model_loaded = joblib.load(settting.MODEL_PATH_GCN)
         except Exception as e:
             raise RuntimeError(f"Failed to load model: {str(e)}")
     else:
