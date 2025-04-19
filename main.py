@@ -21,10 +21,10 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Hoặc thay bằng ["http://localhost:3000"]
+    allow_origins=["*"], 
     allow_credentials=True,
-    allow_methods=["*"],  # Cho phép tất cả method (GET, POST, ...)
-    allow_headers=["*"],  # Cho phép tất cả headers
+    allow_methods=["*"],  
+    allow_headers=["*"], 
 )
 def set_seed(seed=42):
     torch.manual_seed(seed)
@@ -37,7 +37,7 @@ def load_fixed_weights(model,WEIGHT_PATH):
     """Tải trọng số cố định nếu đã có file."""
     if os.path.exists(WEIGHT_PATH):
         model.load_state_dict(torch.load(WEIGHT_PATH, map_location=device))
-        model.eval()  # Đặt chế độ inference
+        model.eval()  
         print(f"✅ Đã tải trọng số cố định từ '{WEIGHT_PATH}'.")
 set_seed(42)
 scaler = joblib.load("scaler.pkl")
@@ -84,7 +84,7 @@ async def predict_vulnerability(files: list[UploadFile] = File(...),status: Mode
             input_size = 48
             loaded_model = MLP(input_size, dropout_rate=0.3)
 
-            # Load trọng số đã lưu
+         
             loaded_model.load_state_dict(torch.load("best_mlp_model.pth"))
             loaded_model.eval() 
             model_loaded = loaded_model
@@ -94,25 +94,25 @@ async def predict_vulnerability(files: list[UploadFile] = File(...),status: Mode
 
     model.eval()
     for file in files:
-        # Tạo timestamp để tránh trùng lặp
+       
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         filename_safe = f"{timestamp}_{file.filename}"
 
         file_path = os.path.join(settting.UPLOAD_DIR, filename_safe)
 
-        # Lưu file lên server
+      
         with open(file_path, "wb") as f:
             f.write(await file.read())
 
-        # Phân tích file với Joern
+     
         data = load_graph_from_folder(file_path, settting.OUTPUT_DIR)
         if data is None:
             os.remove(file_path)
             results.append({"filename": file.filename, "error": "Failed to process file"})
-            continue  # Bỏ qua file lỗi và xử lý file tiếp theo
+            continue  
         
  
-        # Xóa file sau khi xử lý
+        
         os.remove(file_path)
         export_dir = os.path.join(settting.OUTPUT_DIR, filename_safe)
         if os.path.isdir(export_dir):
@@ -140,9 +140,9 @@ async def predict_vulnerability(files: list[UploadFile] = File(...),status: Mode
                         y_pred = model_loaded.predict(X)
         except Exception as e:
             results.append({"filename": file.filename, "error": f"Failed to process file: {str(e)}"})
-            continue  # Tiếp tục với file tiếp theo
+            continue 
 
-        # Lưu kết quả
+        
         results.append({"filename": file.filename, "vulnerable": bool(y_pred[0])})
 
     return {"results": results}

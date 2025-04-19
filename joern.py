@@ -25,26 +25,26 @@ def run_joern_analysis(c_file_path, output_dir):
     tree = ET.parse(file_path)
     root = tree.getroot()
 
-    # Dictionary lưu thông tin node & mapping
+    
     node_features = {}
     node_mapping = {}
 
-    # Lấy danh sách node
+    
     for idx, node in enumerate(root.findall("ns:graph/ns:node", settting.NAMESPACE)):
         node_id = node.get("id")
         node_data = {}
 
-        # Lấy thuộc tính của node
+       
         for data in node.findall("ns:data", settting.NAMESPACE):
             key = data.get("key")
             value = data.text if data.text else "UNKNOWN"
             node_data[key] = value
 
-        # Lưu node vào dictionary
+       
         node_features[node_id] = node_data
-        node_mapping[node_id] = idx  # Đánh số lại cho node
+        node_mapping[node_id] = idx  
 
-    # Xử lý cạnh (edges) & thuộc tính cạnh
+   
     edges = []
     edge_features = []
 
@@ -53,7 +53,7 @@ def run_joern_analysis(c_file_path, output_dir):
         tgt = edge.get("target")
         edge_data = {}
 
-        # Lấy thuộc tính của cạnh
+      
         for data in edge.findall("ns:data", settting.NAMESPACE):
             key = data.get("key")
             value = data.text if data.text else "UNKNOWN"
@@ -63,14 +63,14 @@ def run_joern_analysis(c_file_path, output_dir):
             edges.append((node_mapping[src], node_mapping[tgt]))
             edge_features.append(edge_data)
 
-    # Chuyển danh sách edges thành tensor
+    
     if edges:
         edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous()
     else:
         print(f"Lỗi: Không có cạnh trong {output_dir}")
-        return None  # Bỏ qua nếu không có cạnh
+        return None  
 
-    # Sử dụng Word2Vec để nhúng đặc trưng của node
+   
     node_sentences = [list(data.values()) for data in node_features.values()]
     node_model = Word2Vec(sentences=node_sentences, vector_size=100, min_count=1, workers=4)
 
@@ -78,13 +78,13 @@ def run_joern_analysis(c_file_path, output_dir):
     for data in node_features.values():
         words = list(data.values())
         vectors = [node_model.wv[word] for word in words if word in node_model.wv]
-        x.append(np.mean(vectors, axis=0) if vectors else np.zeros(100))  # 100 chiều vector
+        x.append(np.mean(vectors, axis=0) if vectors else np.zeros(100))  
 
     x = torch.tensor(x, dtype=torch.float)
 
-    # Sử dụng Word2Vec để nhúng đặc trưng của cạnh
+    
     edge_sentences = [list(data.values()) for data in edge_features]
-    edge_model = Word2Vec(sentences=edge_sentences, vector_size=50, min_count=1, workers=4)  # Embedding cạnh 50 chiều
+    edge_model = Word2Vec(sentences=edge_sentences, vector_size=50, min_count=1, workers=4)  
 
     edge_attr = []
     for data in edge_features:
@@ -94,7 +94,7 @@ def run_joern_analysis(c_file_path, output_dir):
 
     edge_attr = torch.tensor(edge_attr, dtype=torch.float)
 
-    # Tạo đối tượng đồ thị PyG
+    
     data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
 
     return data
@@ -113,7 +113,7 @@ def load_graph_from_folder(c_file_path, output_dir):
     tree = ET.parse(file_path)
     root = tree.getroot()
 
-    # Dictionary lưu thông tin node & mapping
+   
     node_features = {}
     node_mapping = {}
 
@@ -122,17 +122,16 @@ def load_graph_from_folder(c_file_path, output_dir):
         node_id = node.get("id")
         node_data = {}
 
-        # Lấy thuộc tính của node
+       
         for data in node.findall("ns:data", settting.NAMESPACE):
             key = data.get("key")
             value = data.text if data.text else "UNKNOWN"
             node_data[key] = f"{key}:{value}"
 
-        # Lưu node vào dictionary
+       
         node_features[node_id] = node_data
-        node_mapping[node_id] = idx  # Đánh số lại cho node
-
-    # Xử lý cạnh (edges) & thuộc tính cạnh
+        node_mapping[node_id] = idx 
+    
     edges = []
     edge_features = []
 
@@ -141,7 +140,7 @@ def load_graph_from_folder(c_file_path, output_dir):
         tgt = edge.get("target")
         edge_data = {}
 
-        # Lấy thuộc tính của cạnh
+      
         for data in edge.findall("ns:data", settting.NAMESPACE):
             key = data.get("key")
             value = data.text if data.text else "UNKNOWN"
@@ -151,14 +150,14 @@ def load_graph_from_folder(c_file_path, output_dir):
             edges.append((node_mapping[src], node_mapping[tgt]))
             edge_features.append(edge_data)
 
-    # Chuyển danh sách edges thành tensor
+   
     if edges:
         edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous()
     else:
         print(f"Lỗi: Không có cạnh trong {output_dir}")
-        return None  # Bỏ qua nếu không có cạnh
+        return None  
 
-    # Sử dụng Word2Vec để nhúng đặc trưng của node
+
     node_sentences = [list(data.values()) for data in node_features.values()]
     node_model = Word2Vec(sentences=node_sentences, vector_size=50, min_count=1, workers=4)
 
@@ -172,7 +171,7 @@ def load_graph_from_folder(c_file_path, output_dir):
 
 
 
-    # Sử dụng Word2Vec để nhúng đặc trưng của cạnh
+    
     edge_sentences = [list(data.values()) for data in edge_features]
     edge_model = Word2Vec(sentences=edge_sentences, vector_size=50, min_count=1, workers=4)  # Embedding cạnh 50 chiều
 
@@ -185,7 +184,7 @@ def load_graph_from_folder(c_file_path, output_dir):
     edge_attr = torch.tensor(edge_attr, dtype=torch.float)
 
 
-    # Tạo đối tượng đồ thị PyG
+    
     data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
 
     return data

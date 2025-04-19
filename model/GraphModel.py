@@ -45,9 +45,8 @@ class GraphModel(nn.Module):
         self.node_gcn = NodeGCN(node_input_dim, node_hidden_dim, node_output_dim)
         self.edge_cnn = EdgeCNN(edge_input_dim, edge_output_dim)
 
-        self.att = GlobalAttention(gate_nn=Linear(node_output_dim, 1))  # Thêm Attention Pooling
-
-        graph_feature_dim = node_output_dim + edge_output_dim  # Tổng số chiều của đặc trưng graph
+        self.att = GlobalAttention(gate_nn=Linear(node_output_dim, 1))  
+        graph_feature_dim = node_output_dim + edge_output_dim  
         self.fc = nn.Linear(graph_feature_dim, final_dim)
 
     def forward(self, data):
