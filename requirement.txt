@@ -4,3 +4,4 @@ pydantic
 torch
 torch_geometric
 imblearn
+gensim

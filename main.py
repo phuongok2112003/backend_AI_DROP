@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, Form
+from fastapi.staticfiles import StaticFiles
 import os
 import torch
 import joblib
@@ -17,7 +18,17 @@ from typing import List
 from enums.model_enum import ModelType 
 from model.MLP import MLP
 import uvicorn
+from fastapi.responses import FileResponse
+
 app = FastAPI()
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
+
+
+@app.get("/")
+async def read_root():
+    return FileResponse("frontend/build/index.html")
 
 app.add_middleware(
     CORSMiddleware,
@@ -77,7 +88,7 @@ async def predict_vulnerability(files: list[UploadFile] = File(...),status: Mode
     else:
         model = SAGE_CNN(node_input_dim=50, node_hidden_dim=64, node_output_dim=32,
                 edge_input_dim=50, edge_output_dim=16, final_dim=2).to(device)
-        WEIGHT_PATH = "SAGE_CNN_drop_weights.pth"
+        WEIGHT_PATH = "SAGE_CNN_smote_weights.pth"
         load_fixed_weights(model=model,WEIGHT_PATH=WEIGHT_PATH)
         try:
 
